@@ -65,8 +65,6 @@ func (a actions) AuthNewForm(c buffalo.Context) error {
 //	@Summary		로그인
 //	@Description	[AuthCreate] 존재하는 계정으로 로그인을 시도합니다. attempts to log the user in with an existing account.
 //	@Tags			auth
-//	@Accept			json
-//	@Produce		json
 //	@Param			Email		formData	string	true	"Email"
 //	@Param			Password	formData	string	true	"Password"
 //	@Success		200			{string}	string	"{'message': 'success', 'user': 'u'}"

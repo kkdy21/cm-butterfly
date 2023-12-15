@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"sync"
 
+	_ "cm_butterfly/docs"
 	"cm_butterfly/locales"
 	"cm_butterfly/models"
 	"cm_butterfly/public"
@@ -15,6 +16,8 @@ import (
 	"github.com/gobuffalo/middleware/forcessl"
 	"github.com/gobuffalo/middleware/i18n"
 	"github.com/gobuffalo/middleware/paramlogger"
+	buffaloSwagger "github.com/swaggo/buffalo-swagger"
+	"github.com/swaggo/buffalo-swagger/swaggerFiles"
 	"github.com/unrolled/secure"
 )
 
@@ -41,6 +44,16 @@ var (
 // `ServeFiles` is a CATCH-ALL route, so it should always be
 // placed last in the route declarations, as it will prevent routes
 // declared after it to never be called.
+
+// @title cm-butterfly
+// @version 1.0
+// @description cloud-barista/cm-butterfly
+// @termsOfService https://github.com/cloud-barista/cm-butterfly
+
+// @contact.name https://github.com/cloud-barista/cm-butterfly
+// @contact.url https://github.com/cloud-barista/cm-butterfly
+
+// @host localhost:3000
 func App() *buffalo.App {
 	appOnce.Do(func() {
 		app = buffalo.New(buffalo.Options{
@@ -56,7 +69,7 @@ func App() *buffalo.App {
 
 		// Protect against CSRF attacks. https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)
 		// Remove to disable this.
-		app.Use(csrf.New)
+		// app.Use(csrf.New)
 
 		// Wraps each request in a transaction.
 		//   c.Value("tx").(*pop.Connection)
@@ -73,6 +86,11 @@ func App() *buffalo.App {
 		// 모든 라우팅 처리
 		RoutesManager(app)
 
+		app.Middleware.Skip(SkipMiddlewareByRoutePath, buffaloSwagger.WrapHandler(swaggerFiles.Handler))
+		app.Middleware.Skip(SetCloudProviderList, buffaloSwagger.WrapHandler(swaggerFiles.Handler))
+		app.Middleware.Skip(csrf.New, buffaloSwagger.WrapHandler(swaggerFiles.Handler))
+
+		app.GET("/swagger/{doc:.*}", buffaloSwagger.WrapHandler(swaggerFiles.Handler))
 		app.ServeFiles("/", http.FS(public.FS())) // serve files from the public directory
 	})
 
