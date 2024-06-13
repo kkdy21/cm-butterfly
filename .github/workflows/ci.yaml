@@ -1,0 +1,58 @@
+name: CM-Butterfly CI
+
+on:
+  push:
+    branches: 
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  check-skip:
+    name: Check to skip CI
+    needs: prepare-commit-msg
+    runs-on: ubuntu-22.04
+    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') && !contains(steps.commitMsg.outputs.HEAD_COMMIT_MSG, '[skip ci]') }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: find commit msg to ckeck skip ci
+        id: commitMsg
+        run: echo "HEAD_COMMIT_MSG=$(git log --no-merges -1 --oneline)" >> "$GITHUB_OUTPUT"
+      - run: |
+          echo "${{ github.event.head_commit.message }}"
+          echo "${{ steps.commitMsg.outputs.HEAD_COMMIT_MSG }}"
+
+
+  build-source:
+    name: Build CM-Butterfly source code
+    needs: check-skip
+    strategy:
+      matrix:
+        go-version: ["1.19"]
+        os: [ubuntu-22.04]
+    runs-on: ${{matrix.os}}
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+          go-version: ${{matrix.go-version}}
+
+    - name: Build binary executable file
+      run: go build -v -o cm-butterfly main.go
+
+ 
+  build-container-image:
+    name: Build a cm-butterfly container image
+    needs: check-skip
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Build
+        env:
+          IMAGE_NAME: ${{ github.event.repository.name }}
+        run: docker build . --file Dockerfile --tag $IMAGE_NAME
