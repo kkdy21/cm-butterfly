@@ -7,7 +7,6 @@ on:
   pull_request:
     branches:
       - main
-
 jobs:
   build-source:
     name: Build CM-Butterfly source code
@@ -27,7 +26,6 @@ jobs:
     - name: Build binary executable file
       run: go build -v -o cm-butterfly main.go
 
- 
   build-container-image:
     name: Build a cm-butterfly container image
     runs-on: ubuntu-22.04
