@@ -25,8 +25,8 @@ jobs:
       - name: check out the code
         uses: actions/checkout@v4
       - name: run if it is valid
-        run:  echo "Github action's job must be proceed? [github.repository_owner == 'cloud-barista']"
-        
+        run:  echo "Github action's job must be proceed? [ ${{ github.repository_owner == 'cloud-barista' }} ]"
+
   echo-hello-world:
     name: Publish a container image
     needs: cd-checker
