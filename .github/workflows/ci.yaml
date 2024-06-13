@@ -9,18 +9,27 @@ on:
       - main
 
 jobs:
-  check-skip:
-    name: Check to skip CI
+  prepare-head-commit-message:
+    name: Retrive head commit message
     runs-on: ubuntu-22.04
-    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') && !contains(steps.commitMsg.outputs.HEAD_COMMIT_MSG, '[skip ci]') }}
+    outputs:
+      HEAD_COMMIT_MSG: ${{ steps.commitMsg.outputs.HEAD_COMMIT_MSG }}
     steps:
       - uses: actions/checkout@v4
-      - name: find commit msg to ckeck skip ci
+      - name: find commit msg for PR
         id: commitMsg
         run: echo "HEAD_COMMIT_MSG=$(git log --no-merges -1 --oneline)" >> "$GITHUB_OUTPUT"
+
+  check-skip:
+    name: Check to skip CI
+    needs: prepare-head-commit-message
+    runs-on: ubuntu-22.04
+    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') && !contains(needs.prepare-commit-msg.outputs.HEAD_COMMIT_MSG, '[skip ci]') }}
+    steps:
+      - uses: actions/checkout@v4
       - run: |
           echo "${{ github.event.head_commit.message }}"
-          echo "${{ steps.commitMsg.outputs.HEAD_COMMIT_MSG }}"
+          echo "${{ needs.prepare-commit-msg.outputs.HEAD_COMMIT_MSG }}"
 
 
   build-source:
