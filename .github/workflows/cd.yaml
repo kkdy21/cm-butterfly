@@ -19,7 +19,7 @@ env:
 jobs:
   cd-checker:
     name: Check Continuous Delivery/Deployment
-    if: github.repository_owner != 'cloud-barista'
+    if: github.repository_owner == 'cloud-barista'
     runs-on: ubuntu-22.04
     steps: 
       - name: check out the code
